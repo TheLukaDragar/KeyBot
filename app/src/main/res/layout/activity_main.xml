@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/constrainedLay0"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/back3"
+    android:animateLayoutChanges="true"
+    tools:context=".MainActivity">
+
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constrainedLay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true"
+            android:background="@drawable/back3"
+            tools:context=".MainActivity">
+
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar_acashmemoreport"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:contentInsetStartWithNavigation="25dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:theme="@style/CustomActionBar"
+                app:title="Devices"
+                app:titleTextAppearance="@style/TextAppearance.AppCompat.Small">
+
+
+            </androidx.appcompat.widget.Toolbar>
+
+
+            <TextView
+                android:id="@+id/TextViewDeviceName"
+                style="@android:style/Widget.Holo.Light.TextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Starting..."
+                android:textColor="#FFFFFF"
+                android:textColorHighlight="#00FFFFFF"
+                android:textColorLink="#00FFFFFF"
+                android:textSize="30sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toolbar_acashmemoreport" />
+
+            <Button
+                android:id="@+id/push_button"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginBottom="140dp"
+                android:background="@drawable/button_bg_round"
+                android:padding="15dp"
+                android:text="UNLOCK"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <View
+                android:id="@+id/view"
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:animateLayoutChanges="true"
+                android:background="@drawable/bigcirclecircle"
+                app:layout_constraintBottom_toTopOf="@+id/push_button"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/TextViewDeviceName"
+                app:layout_constraintVertical_bias="0.3" />
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginBottom="32dp"
+                android:tint="@color/backred"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="@+id/view"
+                app:layout_constraintEnd_toEndOf="@+id/view"
+                app:layout_constraintStart_toStartOf="@+id/view"
+                app:layout_constraintTop_toTopOf="@+id/view" />
+
+            <TextView
+                android:id="@+id/textViewbigcircle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="LOCKED"
+                android:textColor="@color/backred"
+                app:layout_constraintEnd_toEndOf="@+id/imageView"
+                app:layout_constraintStart_toStartOf="@+id/imageView"
+                app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+            <Button
+                android:id="@+id/button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TestBtn"
+                app:layout_constraintEnd_toEndOf="@+id/push_button"
+                app:layout_constraintStart_toStartOf="@+id/push_button"
+                app:layout_constraintTop_toBottomOf="@+id/TextViewRssi"
+                tools:visibility="gone" />
+
+            <TextView
+                android:id="@+id/TextViewRssi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="0"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="@+id/push_button"
+                app:layout_constraintStart_toStartOf="@+id/push_button"
+                app:layout_constraintTop_toBottomOf="@+id/push_button" />
+
+            <View
+                android:id="@+id/locationView"
+                android:layout_width="0dp"
+                android:layout_height="140dp"
+                android:animateLayoutChanges="true"
+                app:layout_constraintBottom_toTopOf="@+id/push_button"
+                app:layout_constraintEnd_toEndOf="@+id/view"
+                app:layout_constraintStart_toStartOf="@+id/view"
+                app:layout_constraintTop_toBottomOf="@+id/view"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <ImageView
+                android:id="@+id/LocationImage"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="100dp"
+                android:background="@drawable/bigcirclecircle"
+                android:padding="15dp"
+                app:layout_constraintEnd_toEndOf="@+id/locationView"
+                app:layout_constraintStart_toStartOf="@+id/locationView"
+                app:layout_constraintTop_toBottomOf="@+id/view"
+                app:srcCompat="@drawable/roka" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            app:itemIconTint="#0C0C0C"
+            app:itemTextColor="#0C0C0C"
+            app:labelVisibilityMode="labeled"
+            app:menu="@menu/bottom_navigation_menu" />
+
+
+    </FrameLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

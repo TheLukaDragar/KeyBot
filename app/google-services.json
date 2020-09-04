@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "236640142484",
+    "firebase_url": "https://keybot-fb1bf.firebaseio.com",
+    "project_id": "keybot-fb1bf",
+    "storage_bucket": "keybot-fb1bf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:236640142484:android:642c758157b83fac4e6081",
+        "android_client_info": {
+          "package_name": "com.keybot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "236640142484-t01u6eb1al5ljld627fdmemgkobd4594.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.keybot",
+            "certificate_hash": "f46550f5e45afe5494ef10f8eb92397ac8ddc2d8"
+          }
+        },
+        {
+          "client_id": "236640142484-j4msj0je6ffui389da05vv4lrstdd56o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7KNH6LzCQxGh5mJOzYKb7g3yb9pEbdeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "236640142484-j4msj0je6ffui389da05vv4lrstdd56o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
