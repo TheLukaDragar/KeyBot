@@ -177,7 +177,9 @@ public class UsersActivity extends AppCompatActivity {
 
 
                                     }
-                                    UsersInfoSorted.add(0,UsersInfo.get(k));//TODO CE NI ADMINA
+                                    if (k<UsersInfo.size()) {
+                                        UsersInfoSorted.add(0, UsersInfo.get(k));//TODO CE NI ADMINA
+                                    }
 
                                     MakeRecycleView();
                                 } else {
@@ -219,7 +221,7 @@ public class UsersActivity extends AppCompatActivity {
         if (device_users!=null&&device_users.size()>0){
             try {
                // MyRecyclerViewAdapter_Predmeti = new MyRecyclerViewAdapter_Predmeti(UsersActivity.this, (UsersActivity.MyRecyclerViewAdapter_Predmeti.MyPredmetListener) this, device_users);
-            MyRecyclerViewAdapter_Predmeti = new MyRecyclerViewAdapter_Predmeti(this,this::removeuser,this::onPredmetClicked,UsersInfoSorted,dev_admin,saved_device.get("device_address"));
+            MyRecyclerViewAdapter_Predmeti = new MyRecyclerViewAdapter_Predmeti(this,this::removeuser,this::makeuseradmin,this::onPredmetClicked,UsersInfoSorted,dev_admin,saved_device.get("device_address"));
                 recyclerView.setAdapter(MyRecyclerViewAdapter_Predmeti);
                 swipeRefreshLayout.setRefreshing(false);
 
@@ -318,10 +320,10 @@ public class UsersActivity extends AppCompatActivity {
 
     }
 
-    public void removeuser( int pos){
+    public void removeuser(int pos){
 
 
-        Toast.makeText(getApplicationContext(), "Removing "+ UsersInfoSorted.get(pos).get("username")+ "from device users",
+        Toast.makeText(getApplicationContext(), "Removing "+ UsersInfoSorted.get(pos).get("username")+ " from device users",
                 Toast.LENGTH_LONG).show();
 
 
@@ -349,7 +351,35 @@ public class UsersActivity extends AppCompatActivity {
 
 
     }
-    private static void makeuseradmin(){
+    private void makeuseradmin(int pos){
+
+
+        Toast.makeText(getApplicationContext(), "Making "+ UsersInfoSorted.get(pos).get("username")+ " device Admin",
+                Toast.LENGTH_LONG).show();
+
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        DocumentReference washingtonRef = db.collection("Devices").document(saved_device.get("device_address"));
+
+        washingtonRef.update("device_admin",UsersInfoSorted.get(pos).get("id")).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()){
+                    GetFromDb();
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "something went wrong",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+
+
+
+
+
 
     }
 
@@ -359,6 +389,7 @@ public class UsersActivity extends AppCompatActivity {
         private LayoutInflater mInflater;
         private MyPredmetListener myPredmetListener;
         private removeuser removeuser;
+        private Makeusradmin Makeusradmin;
         private Context context;
         private String dev_admin;
         private String currentuserid;
@@ -367,7 +398,7 @@ public class UsersActivity extends AppCompatActivity {
 
 
         // data is passed into the constructor
-        MyRecyclerViewAdapter_Predmeti(Context context,removeuser remusr, MyPredmetListener myPredmetListener, ArrayList<HashMap<String, String>> data, String dev_admin, String dev_address) {
+        MyRecyclerViewAdapter_Predmeti(Context context,removeuser remusr,Makeusradmin madmin, MyPredmetListener myPredmetListener, ArrayList<HashMap<String, String>> data, String dev_admin, String dev_address) {
             this.mInflater = LayoutInflater.from(context);
             this.mData = data;
             this.myPredmetListener=myPredmetListener;
@@ -376,6 +407,7 @@ public class UsersActivity extends AppCompatActivity {
             this.currentuserid=FirebaseAuth.getInstance().getUid();
             this.dev_adress=dev_address;
             this.removeuser=remusr;
+            this.Makeusradmin=madmin;
 
         }
 
@@ -394,9 +426,6 @@ public class UsersActivity extends AppCompatActivity {
             String name = mData.get(position).get("username");
             String id = mData.get(position).get("id");
 
-            if (currentuserid.equals(dev_admin)){
-                holder.buttonViewOption.setEnabled(true);
-                holder.buttonViewOption.setVisibility(View.VISIBLE);
                 holder.buttonViewOption.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -404,28 +433,54 @@ public class UsersActivity extends AppCompatActivity {
                         //creating a popup menu
                         PopupMenu popup = new PopupMenu(context, holder.buttonViewOption);
                         //inflating menu from xml resource
-                        popup.inflate(R.menu.users_menu);
-                        //adding click listener
-                        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                                switch (item.getItemId()) {
-                                    case R.id.menu1:
+                        if (currentuserid.equals(dev_admin)) {
+                            popup.inflate(R.menu.users_menu_admin);
+                        }else{
+                            popup.inflate(R.menu.users_menu);
 
-                                        removeuser.removeuser(position);
-                                       //new UsersActivity().removeuser(mData,context,position,dev_adress);
-                                        //handle menu1 click
-                                        break;
-                                    case R.id.menu2:
-                                        //makeuseradmin(id);
-                                        //handle menu2 click
-                                        break;
+                        }
+                            //adding click listener
+                            popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                                @Override
+                                public boolean onMenuItemClick(MenuItem item) {
+                                    switch (item.getItemId()) {
+                                        case R.id.menu_rem_usr:
+
+                                            removeuser.removeuser(position);
+
+
+                                            break;
+                                        case R.id.menu_make_admin:
+
+                                            if (mData.get(position).get("id").equals(dev_admin)){
+                                                Toast.makeText(context, "User already is an Admin",
+                                                        Toast.LENGTH_LONG).show();
+
+                                            }else{
+                                                Makeusradmin.Makeusradmin(position);
+
+                                            }
+
+
+
+                                            break;
+
+                                        case R.id.menu_info:
+
+                                            break;
+
+                                        case R.id.menu_info2:
+
+                                            break;
+                                    }
+                                    return false;
                                 }
-                                return false;
-                            }
-                        });
-                        //displaying the popup
-                        popup.show();
+                            });
+
+
+                            //displaying the popup
+                            popup.show();
+
 
                     }
                 });
@@ -433,7 +488,7 @@ public class UsersActivity extends AppCompatActivity {
                // name=name+" (Admin)";
               //  holder.admin.setVisibility(View.VISIBLE);//TODO ADD SOMETHING HERHE
                // holder.lin.setBackgroundColor(context.getResources().getColor(R.color.admin));
-            }
+
             if (id.equals(currentuserid)){
 
                  name=name+" (you)";
@@ -545,6 +600,11 @@ public class UsersActivity extends AppCompatActivity {
         }
         private interface removeuser{
             void removeuser(int position);
+
+
+        }
+        private interface Makeusradmin{
+            void Makeusradmin(int position);
 
 
         }
