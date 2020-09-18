@@ -3,6 +3,8 @@ package com.keybot;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.MenuView;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -13,6 +15,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Layout;
 import android.util.Log;
@@ -20,6 +23,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
@@ -38,6 +43,7 @@ import com.google.firebase.dynamiclinks.ShortDynamicLink;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -48,7 +54,7 @@ import java.util.List;
 
 public class UsersActivity extends AppCompatActivity {
     private final static String TAG = MainActivity.class.getSimpleName();
-    HashMap<String, String> saved_device;
+    public HashMap<String, String> saved_device;
     private int active_device;
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView recyclerView;
@@ -73,6 +79,12 @@ public class UsersActivity extends AppCompatActivity {
         Log.v(TAG, saved_device.get("device_name"));
 
         setContentView(R.layout.activity_users);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+        }
 
         initToolbar();
         ActionBar actionBar = getSupportActionBar();
@@ -110,7 +122,7 @@ public class UsersActivity extends AppCompatActivity {
         GetFromDb();
     }
 
-    private void GetFromDb() {
+    public void GetFromDb() {
 
         swipeRefreshLayout.setRefreshing(true);
 
@@ -165,7 +177,7 @@ public class UsersActivity extends AppCompatActivity {
 
 
                                     }
-                                    UsersInfoSorted.add(0,UsersInfo.get(k));
+                                    UsersInfoSorted.add(0,UsersInfo.get(k));//TODO CE NI ADMINA
 
                                     MakeRecycleView();
                                 } else {
@@ -207,7 +219,7 @@ public class UsersActivity extends AppCompatActivity {
         if (device_users!=null&&device_users.size()>0){
             try {
                // MyRecyclerViewAdapter_Predmeti = new MyRecyclerViewAdapter_Predmeti(UsersActivity.this, (UsersActivity.MyRecyclerViewAdapter_Predmeti.MyPredmetListener) this, device_users);
-            MyRecyclerViewAdapter_Predmeti = new MyRecyclerViewAdapter_Predmeti(getApplicationContext(),this::onPredmetClicked,UsersInfoSorted,dev_admin);
+            MyRecyclerViewAdapter_Predmeti = new MyRecyclerViewAdapter_Predmeti(this,this::removeuser,this::onPredmetClicked,UsersInfoSorted,dev_admin,saved_device.get("device_address"));
                 recyclerView.setAdapter(MyRecyclerViewAdapter_Predmeti);
                 swipeRefreshLayout.setRefreshing(false);
 
@@ -306,22 +318,64 @@ public class UsersActivity extends AppCompatActivity {
 
     }
 
+    public void removeuser( int pos){
+
+
+        Toast.makeText(getApplicationContext(), "Removing "+ UsersInfoSorted.get(pos).get("username")+ "from device users",
+                Toast.LENGTH_LONG).show();
+
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        DocumentReference washingtonRef = db.collection("Devices").document(saved_device.get("device_address"));
+
+        washingtonRef.update("device_users", FieldValue.arrayRemove(UsersInfoSorted.get(pos).get("id"))).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()){
+                GetFromDb();
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "something went wrong",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+
+
+
+
+
+
+    }
+    private static void makeuseradmin(){
+
+    }
+
     public static class MyRecyclerViewAdapter_Predmeti extends RecyclerView.Adapter<MyRecyclerViewAdapter_Predmeti.ViewHolder> {
 
         private  ArrayList<HashMap<String, String>> mData;
         private LayoutInflater mInflater;
         private MyPredmetListener myPredmetListener;
+        private removeuser removeuser;
         private Context context;
         private String dev_admin;
+        private String currentuserid;
+        private String dev_adress;
+
 
 
         // data is passed into the constructor
-        MyRecyclerViewAdapter_Predmeti(Context context, MyPredmetListener myPredmetListener, ArrayList<HashMap<String, String>> data,String dev_admin) {
+        MyRecyclerViewAdapter_Predmeti(Context context,removeuser remusr, MyPredmetListener myPredmetListener, ArrayList<HashMap<String, String>> data, String dev_admin, String dev_address) {
             this.mInflater = LayoutInflater.from(context);
             this.mData = data;
             this.myPredmetListener=myPredmetListener;
             this.dev_admin=dev_admin;
             this.context=context;
+            this.currentuserid=FirebaseAuth.getInstance().getUid();
+            this.dev_adress=dev_address;
+            this.removeuser=remusr;
 
         }
 
@@ -340,14 +394,55 @@ public class UsersActivity extends AppCompatActivity {
             String name = mData.get(position).get("username");
             String id = mData.get(position).get("id");
 
-            if (id.equals(dev_admin)){
+            if (currentuserid.equals(dev_admin)){
+                holder.buttonViewOption.setEnabled(true);
+                holder.buttonViewOption.setVisibility(View.VISIBLE);
+                holder.buttonViewOption.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        //creating a popup menu
+                        PopupMenu popup = new PopupMenu(context, holder.buttonViewOption);
+                        //inflating menu from xml resource
+                        popup.inflate(R.menu.users_menu);
+                        //adding click listener
+                        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                switch (item.getItemId()) {
+                                    case R.id.menu1:
+
+                                        removeuser.removeuser(position);
+                                       //new UsersActivity().removeuser(mData,context,position,dev_adress);
+                                        //handle menu1 click
+                                        break;
+                                    case R.id.menu2:
+                                        //makeuseradmin(id);
+                                        //handle menu2 click
+                                        break;
+                                }
+                                return false;
+                            }
+                        });
+                        //displaying the popup
+                        popup.show();
+
+                    }
+                });
 
                // name=name+" (Admin)";
-                holder.lin.setBackgroundColor(context.getResources().getColor(R.color.admin));
+              //  holder.admin.setVisibility(View.VISIBLE);//TODO ADD SOMETHING HERHE
+               // holder.lin.setBackgroundColor(context.getResources().getColor(R.color.admin));
+            }
+            if (id.equals(currentuserid)){
+
+                 name=name+" (you)";
+
             }
 
 
             String email = mData.get(position).get("email");
+            email="emailemail@gmail.com";
             String photoUrl = mData.get(position).get("photo_url");
 
             Glide.with(context)
@@ -370,6 +465,9 @@ public class UsersActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
+
+
 
 
             Animation fadeIn = new AlphaAnimation(0, 1);
@@ -397,8 +495,10 @@ public class UsersActivity extends AppCompatActivity {
             MyPredmetListener myPredmetListener;
             TextView name;
             TextView email;
+            TextView admin;
             ImageView userPhoto;
             ConstraintLayout lin;
+            TextView buttonViewOption;
 
 
 
@@ -410,6 +510,9 @@ public class UsersActivity extends AppCompatActivity {
                 cardView = itemView.findViewById(R.id.card_predmet);
                 userPhoto = itemView.findViewById(R.id.userPhoto);
                 lin=itemView.findViewById(R.id.linearLayout);
+                admin=itemView.findViewById(R.id.textViewAdmin);
+                buttonViewOption=itemView.findViewById(R.id.textViewOptions);
+
 
 
 
@@ -439,6 +542,15 @@ public class UsersActivity extends AppCompatActivity {
             void onPredmetClicked(int position);
 
 
+        }
+        private interface removeuser{
+            void removeuser(int position);
+
+
+        }
+
+        public HashMap<String, String> getItem(int pos) {
+            return mData.get(pos);
         }
 
 

@@ -482,6 +482,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "unlockinUI " + stringExtra);
                 islocked=false;
             }
+
         }
     }
 
@@ -503,6 +504,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     private void lockUI(){
         runOnUiThread(new Runnable() {
             @Override
@@ -518,6 +520,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void notconnectedUI(){
         runOnUiThread(new Runnable() {
@@ -565,6 +568,7 @@ public class MainActivity extends AppCompatActivity {
                 deviceName.setText(status);
             }
         });
+
     }
 
 
@@ -784,11 +788,20 @@ public class MainActivity extends AppCompatActivity {
                             return true;
                         case R.id.navigation_users:
 
+                            if (nodevices){
+                                Toast.makeText(getApplicationContext(), "No saved devices to view its users",
+                                        Toast.LENGTH_LONG).show();
+
+
+                            }else{
                             Intent myIntent = new Intent(MainActivity.this, UsersActivity.class);
                             myIntent.putExtra("saved_device",saved_device);
                             myIntent.putExtra("active_device",active_device);
                             MainActivity.this.startActivity(myIntent);
                             finish();
+                            }
+                            //overridePendingTransition(R.anim.up_anim,R.anim.up_anim_don);
+
 
                             //openFragment(NotificationFragment.newInstance("", ""));
                             return true;

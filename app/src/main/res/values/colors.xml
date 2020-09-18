@@ -9,6 +9,7 @@
     <color name="backgreen">#00C1A5</color>
     <color name="backnotconnected">#2F4F4F</color>
     <color name="white">#FFF</color>
+    <color name="user">#00C1A5</color>
     <color name="admin">#F9A825</color>
 
 </resources>
