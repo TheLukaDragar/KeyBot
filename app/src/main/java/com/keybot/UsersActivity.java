@@ -1,23 +1,10 @@
 package com.keybot;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.view.menu.MenuView;
-import androidx.appcompat.widget.PopupMenu;
-import androidx.appcompat.widget.Toolbar;
-import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -29,9 +16,19 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -67,6 +64,7 @@ public class UsersActivity extends AppCompatActivity {
     private String dev_pin ;
     private String dev_admin_pin ;
     private RecyclerView.Adapter MyRecyclerViewAdapter_Predmeti;
+    private FloatingActionButton fab;
 
 
     @Override
@@ -104,7 +102,7 @@ public class UsersActivity extends AppCompatActivity {
         RecyclerView.LayoutManager layoutManager2 = new LinearLayoutManager(UsersActivity.this, LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager2);
 
-        FloatingActionButton fab = findViewById(R.id.floatingActionButton);
+        fab = findViewById(R.id.floatingActionButton);
 
 
 
@@ -144,49 +142,58 @@ public class UsersActivity extends AppCompatActivity {
                         dev_name = document.getString("device_name");
                         dev_pin = document.getString("device_pin");
                         dev_admin_pin = document.getString("device_admin_pin");
+                        if (!device_users.isEmpty()) {
 
-                        rootRef.collection("Users").whereIn(FieldPath.documentId(), device_users).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.isSuccessful()) {
+                            rootRef.collection("Users").whereIn(FieldPath.documentId(), device_users).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                    if (task.isSuccessful()) {
 
-                                   UsersInfo = new ArrayList<HashMap<String, String>>();
-                                    for (QueryDocumentSnapshot document : task.getResult()) {
-                                        Log.d(TAG, document.getId() + " => " + document.getData());
-                                        HashMap<String, String> user_info = new HashMap<String, String>();
-                                        user_info.put("email",document.get("email").toString());
-                                        user_info.put("id",document.get("id").toString());
-                                        user_info.put("username",document.get("username").toString());
-                                        user_info.put("photo_url",document.get("photo_url").toString());
-                                        UsersInfo.add(user_info);
+                                        UsersInfo = new ArrayList<HashMap<String, String>>();
+                                        for (QueryDocumentSnapshot document : task.getResult()) {
+                                            Log.d(TAG, document.getId() + " => " + document.getData());
+                                            HashMap<String, String> user_info = new HashMap<String, String>();
+                                            user_info.put("email", document.get("email").toString());
+                                            user_info.put("id", document.get("id").toString());
+                                            user_info.put("username", document.get("username").toString());
+                                            user_info.put("photo_url", document.get("photo_url").toString());
+                                            UsersInfo.add(user_info);
 
 
-
-                                    }
-                                        int k=0;
-
-                                    UsersInfoSorted = new ArrayList<HashMap<String, String>>();
-                                    UsersInfoSorted.addAll(UsersInfo);
-                                    for (HashMap<String, String>userinf:UsersInfo){
-
-                                        if(userinf.get("id").equals(dev_admin)){
-                                            UsersInfoSorted.remove(userinf);
-                                            break;
                                         }
-                                        k=k+1;
+                                        int k = 0;
+
+                                        UsersInfoSorted = new ArrayList<HashMap<String, String>>();
+                                        UsersInfoSorted.addAll(UsersInfo);
+                                        for (HashMap<String, String> userinf : UsersInfo) {
+
+                                            if (userinf.get("id").equals(dev_admin)) {
+                                                UsersInfoSorted.remove(userinf);
+                                                break;
+                                            }
+                                            k = k + 1;
 
 
+                                        }
+                                        if (k < UsersInfo.size()) {
+                                            UsersInfoSorted.add(0, UsersInfo.get(k));//TODO CE NI ADMINA
+                                        }
+
+                                        MakeRecycleView();
+                                    } else {
+                                        Log.d(TAG, "Error getting documents: ", task.getException());
                                     }
-                                    if (k<UsersInfo.size()) {
-                                        UsersInfoSorted.add(0, UsersInfo.get(k));//TODO CE NI ADMINA
-                                    }
-
-                                    MakeRecycleView();
-                                } else {
-                                    Log.d(TAG, "Error getting documents: ", task.getException());
                                 }
-                            }
-                        });
+                            });
+
+                        }else {
+
+                            Log.d(TAG, "Device users is empty ", task.getException());
+                            swipeRefreshLayout.setRefreshing(false);
+                            fab.hide();
+
+
+                        }
 
 
 
@@ -331,11 +338,13 @@ public class UsersActivity extends AppCompatActivity {
 
         DocumentReference washingtonRef = db.collection("Devices").document(saved_device.get("device_address"));
 
+
         washingtonRef.update("device_users", FieldValue.arrayRemove(UsersInfoSorted.get(pos).get("id"))).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()){
-                GetFromDb();
+
+                    GetFromDb();
                 }
                 else {
                     Toast.makeText(getApplicationContext(), "something went wrong",
@@ -366,7 +375,23 @@ public class UsersActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()){
-                    GetFromDb();
+
+                    washingtonRef.update("device_admin_name",UsersInfoSorted.get(pos).get("username")).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()){
+
+
+                                GetFromDb();
+                            }
+                            else {
+                                Toast.makeText(getApplicationContext(), "something went wrong",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+
+
                 }
                 else {
                     Toast.makeText(getApplicationContext(), "something went wrong",
@@ -560,7 +585,7 @@ public class UsersActivity extends AppCompatActivity {
 
             ViewHolder(View itemView,MyPredmetListener myPredmetListener) {
                 super(itemView);
-               name = itemView.findViewById(R.id.text_name);
+               name = itemView.findViewById(R.id.text_name_device);
                 email=itemView.findViewById(R.id.text_email);
                 cardView = itemView.findViewById(R.id.card_predmet);
                 userPhoto = itemView.findViewById(R.id.userPhoto);

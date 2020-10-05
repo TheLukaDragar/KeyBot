@@ -19,7 +19,6 @@ package com.keybot;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -31,8 +30,6 @@ import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -49,9 +46,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -70,11 +65,11 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.AppSettingsDialog;
@@ -169,18 +164,19 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
                                     Log.d(TAG, "Document exists!");
                                     List<String> device_users = (List<String>) document.get("device_users");
                                     String dev_admin = document.getString("device_admin");
+                                    String dev_admin_name = document.getString("device_admin_name");
                                     String dev_name = document.getString("device_name");
                                     String dev_pin = document.getString("device_pin");
                                     String dev_admin_pin = document.getString("device_admin_pin");
 
 
 
-                                    if (device_users != null && dev_admin!=null && dev_name!=null &&dev_pin!=null && dev_admin_pin!=null) {
+                                    if (device_users != null && dev_admin!=null && dev_admin_name!=null  && dev_name!=null &&dev_pin!=null && dev_admin_pin!=null) {
 
-                                        if (dev_admin.isEmpty()){
+                                        if (dev_admin.isEmpty() || dev_admin_name.isEmpty()){
 
                                             Log.d(TAG, "Device has no admin ");
-                                            saveandconnect(device,true,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin,true);
+                                            saveandconnect(device,true,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin,dev_admin_name,true);
                                         }
                                         else if (isuserinlist(device_users,mAuthCurrentuser.getUid())) {
 
@@ -188,7 +184,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
 
                                             if (finalIsuserdeviceadmin && dev_admin.equals(mAuthCurrentuser.getUid())){
                                                 Log.d(TAG, "User admin and in userlist");
-                                                saveandconnect(device,true,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin,false);
+                                                saveandconnect(device,true,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin, dev_admin_name, false);
                                                 Toast.makeText(getApplicationContext(), "You are admin",
                                                         Toast.LENGTH_LONG).show();
 
@@ -200,7 +196,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
 
                                                 Log.d(TAG, "User admin offline but not online,and in userlist");
 
-                                                saveandconnect(device,false,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin,false);
+                                                saveandconnect(device,false,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin, dev_admin_name, false);
                                                 Toast.makeText(getApplicationContext(), "You now a user",
                                                         Toast.LENGTH_LONG).show();
 
@@ -213,7 +209,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
 
                                                 Log.d(TAG, "User in userlist");
 
-                                                saveandconnect(device,false,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin,false);
+                                                saveandconnect(device,false,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin, dev_admin_name, false);
                                                 Toast.makeText(getApplicationContext(), "You are a user",
                                                         Toast.LENGTH_LONG).show();
 
@@ -227,7 +223,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
                                                 else if (dev_admin.equals(mAuthCurrentuser.getUid())){
                                                     Log.d(TAG, "User admin but not in userlist");
 
-                                                saveandconnect(device,true,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin,true);
+                                                saveandconnect(device,true,dev_name,dev_admin,device_users,dev_pin,dev_admin_pin, dev_admin_name, true);
 
                                                     Toast.makeText(getApplicationContext(), "You are admin",
                                                             Toast.LENGTH_LONG).show();
@@ -237,6 +233,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
 
                                                 Toast.makeText(getApplicationContext(), "You are not authorized to use this KeyBot",
                                                         Toast.LENGTH_LONG).show();
+                                                AskForPermission(dev_admin);
 
                                             }
 
@@ -271,7 +268,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
                     });
                 }else{
 
-                    Toast.makeText(getApplicationContext(), "",
+                    Toast.makeText(getApplicationContext(), "Please connect to the internet to access devices",
                             Toast.LENGTH_LONG).show();
 
 
@@ -345,7 +342,31 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
         //check perrmisions
     }
 
-    private void saveandconnect(BluetoothDevice device, boolean isadmin, String dev_name,String dev_admin, List<String> device_users, String dev_pin, String dev_admin_pin, boolean newdevice) {
+    private void AskForPermission(String device_admin_id) {
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+
+        long timestamp = new Date().getTime();
+        long dayTimestamp = MainActivity.getDayTimestamp(timestamp);
+        String body = "Can I use Your Keybot";
+        String ownerUid = mAuth.getCurrentUser().getUid();
+        String userUid =  device_admin_id;
+        MainActivity.Message message =
+                new MainActivity.Message(timestamp, -timestamp, dayTimestamp, body, ownerUid, userUid);
+
+
+        db.collection("notifications").add(message).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+
+
+
+            }
+        });
+    }
+
+    private void saveandconnect(BluetoothDevice device, boolean isadmin, String dev_name, String dev_admin, List<String> device_users, String dev_pin, String dev_admin_pin, String dev_admin_name, boolean newdevice) {
 
 
 
@@ -371,9 +392,12 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
         }
 
         offlinedevice.put("device_admin",dev_admin);
+        offlinedevice.put("device_admin_name",dev_admin_name);
         if (isadmin){
 
             offlinedevice.put("device_admin",mAuthCurrentuser.getUid());
+            offlinedevice.put("device_admin_name",mAuthCurrentuser.getDisplayName());
+
 
 
 
@@ -382,8 +406,6 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
 
 
         offlinedevice.put("device_address",device.getAddress());
-        offlinedevice.put("user_is_admin",isadmin?"true":"false");
-
         offlinedevice.put("device_name",dev_name);
         offlinedevice.put("device_users",String.join(",",device_users));
         offlinedevice.put("device_pin",dev_pin);//TODO NOT WRITING THIS IN
@@ -435,6 +457,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
         // Create a new user with a first and last name
         Map<String, Object> user1 = new HashMap<>();
         user1.put("device_admin", offlinedevice.get("device_admin"));
+        user1.put("device_admin_name", offlinedevice.get("device_admin_name"));
         user1.put("device_admin_pin", offlinedevice.get("device_admin_pin"));
         user1.put("device_name", offlinedevice.get("device_name"));
         user1.put("device_pin", offlinedevice.get("device_pin"));
@@ -447,11 +470,18 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
                 .set(user1, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                Log.d(TAG, "DocumentSnapshot successfully written!");
 
+                SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+                SharedPreferences.Editor editor =pref.edit();
+                editor.putString("device_to_use_address",  device.getAddress());
+                editor.commit();
+
+                Log.d(TAG, "DocumentSnapshot successfully written!");
                 Intent myIntent = new Intent(DeviceScanActivity.this, MainActivity.class);
                 DeviceScanActivity.this.startActivity(myIntent);
                 finish();
+
+
 
 
             }
@@ -466,52 +496,8 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
                     }
                 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
+
 
 
 
@@ -530,6 +516,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
                    "Location permissions are required for Bluetooth operations.",
                     RC_LOCATION_CONTACTS_PERM,
                     LOCATION_AND_CONTACTS);
+            //TODO LOAKCIJA MORE BIT ON DA BLE DELA
         }
     }
 
@@ -588,6 +575,12 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
         }
         return true;
     }
+    @Override
+    public void onBackPressed() {
+        Intent myIntent = new Intent(getApplicationContext(), MainActivity.class);
+        startActivityForResult(myIntent, 0);
+        finish();
+    }
 
     @Override
     protected void onResume() {
@@ -624,81 +617,6 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
     }
 
 
-    private boolean isDeviceSaved(String deviceName,String deviceAdress, SharedPreferences pref){
-
-       String[] DEVICE_NAMES = pref.getString("DEVICE_NAMES", "empty,").split(",");
-       String[] DEVICE_ADDRESES = pref.getString("DEVICE_ADRESSES","empty,").split(",");
-
-        SharedPreferences.Editor editor = pref.edit();
-
-       if (isIn(DEVICE_NAMES,deviceName)&&isIn(DEVICE_ADDRESES,deviceAdress)){
-           //Already in get index
-           int i;
-           for (i = 0; i < DEVICE_ADDRESES.length; i++) {
-               if (DEVICE_ADDRESES[i].equals(deviceAdress)) {
-                   System.out.println("device index foind"+ String.valueOf(i));
-                   break;
-               }
-           }
-           editor.putInt("DEVICE_TO_CONNECT",i);
-           editor.commit();
-
-           return true;
-
-
-
-
-       }else {
-
-
-           List<String> ADRESESList = new ArrayList<String>(Arrays.asList(DEVICE_ADDRESES)); //new ArrayLis
-
-           if (ADRESESList.get(0).equals("empty")){
-               ADRESESList.set(0,deviceAdress);
-           }else{
-               ADRESESList.add(deviceAdress);
-           }
-
-           List<String> NamesList = new ArrayList<String>(Arrays.asList(DEVICE_ADDRESES)); //new ArrayLis
-           if (NamesList.get(0).equals("empty")){
-               NamesList.set(0,deviceName);
-           }else{
-               NamesList.add(deviceName);
-           }
-
-
-           int i;
-           for (i = 0; i < ADRESESList.size(); i++) {
-               if (ADRESESList.get(i).equals(deviceAdress)) {
-                   System.out.println("new device index found adding it"+ String.valueOf(i));
-                   break;
-               }
-           }
-
-           String adresseslist = TextUtils.join(",",ADRESESList);
-           String nameslist =  TextUtils.join(",",NamesList);
-
-           editor.putString("DEVICE_ADRESSES",adresseslist);
-           editor.putString("DEVICE_NAMES",nameslist);
-           editor.putInt("DEVICE_TO_CONNECT",i);
-           editor.commit();
-
-           return false;
-
-
-
-
-
-
-       }
-
-
-
-
-
-
-
-    }
     public static boolean isIn(String[] arr, String targetValue) {
         return Arrays.asList(arr).contains(targetValue);
     }
@@ -719,6 +637,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
             //new UUID[]{MY_UUID}
             //TODO
             mBluetoothAdapter.startLeScan(mLeScanCallback);
+            System.out.println("Started Scan");
         } else {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -808,6 +727,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            System.out.println("Device found: "+device.getAddress());
                             mLeDeviceListAdapter.addDevice(device);
                             mLeDeviceListAdapter.notifyDataSetChanged();
                         }
@@ -863,7 +783,7 @@ public class DeviceScanActivity extends AppCompatActivity implements EasyPermiss
 
 
     }
-    private int getOfflineDeviceWithAdress(ArrayList<HashMap<String, String>> offlinedeviceList, String address) {
+    public int getOfflineDeviceWithAdress(ArrayList<HashMap<String, String>> offlinedeviceList, String address) {
 
         int i;
 

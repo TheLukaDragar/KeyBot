@@ -11,10 +11,43 @@
     tools:context=".MainActivity">
 
 
-    <FrameLayout
-        android:id="@+id/container"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_acashmemoreport"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="?attr/actionBarSize"
+        android:elevation="1dp"
+        app:contentInsetStartWithNavigation="25dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:theme="@style/CustomActionBar"
+        app:title="Devices"
+        app:titleTextAppearance="@style/TextAppearance.AppCompat.Small">
+
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-7dp"
+        android:layout_marginBottom="-7dp"
+        android:elevation="1dp"
+        app:layout_constraintBottom_toBottomOf="@+id/toolbar_acashmemoreport"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_acashmemoreport" />
+
+    <FrameLayout
+        android:id="@+id/swipe_to_ref_main"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constrainedLay"
@@ -25,28 +58,13 @@
             tools:context=".MainActivity">
 
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar_acashmemoreport"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:contentInsetStartWithNavigation="25dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:theme="@style/CustomActionBar"
-                app:title="Devices"
-                app:titleTextAppearance="@style/TextAppearance.AppCompat.Small">
-
-
-            </androidx.appcompat.widget.Toolbar>
-
-
             <TextView
                 android:id="@+id/TextViewDeviceName"
                 style="@android:style/Widget.Holo.Light.TextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:layout_marginTop="56dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="Starting..."
                 android:textColor="#FFFFFF"
@@ -54,7 +72,7 @@
                 android:textColorLink="#00FFFFFF"
                 android:textSize="30sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/toolbar_acashmemoreport" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <Button
                 android:id="@+id/push_button"
@@ -152,18 +170,22 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottom_navigation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            app:itemIconTint="#0C0C0C"
-            app:itemTextColor="#0C0C0C"
-            app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_navigation_menu" />
-
 
     </FrameLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/colorWhite"
+        app:itemIconTint="#0C0C0C"
+        app:itemTextColor="#0C0C0C"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_navigation_menu" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

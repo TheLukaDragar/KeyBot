@@ -4,7 +4,7 @@
     <item
         android:id="@+id/navigation_keys"
         android:icon="@drawable/key"
-        android:title="Your Key" />
+        android:title="KeyBot's" />
     <item
         android:id="@+id/navigation_lock"
         android:icon="@drawable/lockiconholo"

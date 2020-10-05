@@ -1,18 +1,14 @@
 package com.keybot;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -27,9 +23,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
@@ -212,10 +206,17 @@ public class LoginActivity extends Activity {
 
     private void addUserToFirebaseDB() {
 
+        FCMHandler fmchandle= new FCMHandler();
+        fmchandle.enableFCM();
+
+
+
         userEmail=mAuth.getCurrentUser().getEmail();
         userId=mAuth.getCurrentUser().getUid();
         username=mAuth.getCurrentUser().getDisplayName();
         userPhoto=mAuth.getCurrentUser().getPhotoUrl().toString();
+
+
 
 
 
